@@ -1,0 +1,3 @@
+# CONTRIBUTING
+
+Check back later 😅
