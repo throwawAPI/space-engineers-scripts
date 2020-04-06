@@ -22,7 +22,6 @@ FONT = "Monospace";
 // TODO github link
 //
 
-// TODO need to be made static?
 private void Program__Programmable_Block_Display() {
   IMyTextSurface display = Me.GetSurface(PROGRAMMABLE_BLOCK_SCREEN_SURFACE_NUM);
   string timeString = DateTime.Now.ToString("yyy-MM-dd HH:mm:ss tt");
@@ -31,9 +30,8 @@ private void Program__Programmable_Block_Display() {
   display.ContentType = ContentType.TEXT_AND_IMAGE;
   display.WriteText($"\nCurrent Program: {VERSION}\n", false);
   display.WriteText($"\nLast Compiled: {timeString}\n", true);
-} // Program_Programmable_Block_Display()
+} // Program__Programmable_Block_Display()
 
-// TODO need to be made static?
 private void Main__WriteDiagnostics() {
   double LastRunTimeNs = Runtime.LastRunTimeMs * 1000;
 
@@ -43,7 +41,6 @@ private void Main__WriteDiagnostics() {
   Echo($"{Runtime.CurrentInstructionCount}/{Runtime.MaxInstructionCount}");
 } // WriteDiagnostics()
 
-// TODO need to be made static
 private string Match(string input, string pattern, string errMsg) {
   System.Text.RegularExpressions.Match match;
   match = System.Text.RegularExpressions.Regex.Match(input, pattern);
@@ -63,14 +60,14 @@ public List<Type> GetBlocksOfTypeWithNames<Type>(List<Type> blocks,
   // populate that list with all those blocks
   GridTerminalSystem.GetBlocksOfType(blks);
   // filter that list by the strings provided
-  return blocks = FilterBlocksOfTypeWithNames(blks, strings);
+  return FilterBlocksOfTypeWithNames(blks, strings);
 }
 
 public List<Type> FilterBlocksOfTypeWithNames<Type>(List<Type> blocks,
                                                             params string[] strings)
                                                             where Type : class, IMyTerminalBlock {
   // find the subset of blocks which match all strings provided
-  return blocks = blocks.FindAll(block => strings.All(str => block.CustomName.Contains(str)));
+  return blocks.FindAll(block => strings.All(str => block.CustomName.Contains(str)));
 }
 
 public List<IMyTerminalBlock> GetBlocksOfNames(params string[] strings) {
