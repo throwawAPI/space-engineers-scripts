@@ -1,0 +1,5 @@
+title: A Space Engineer's Tools
+sass:
+  style: compressed
+plugins:
+  - jekyll-autoprefixer

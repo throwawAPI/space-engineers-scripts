@@ -1,0 +1,56 @@
+---
+layout: default
+title: Thrust Calculator
+---
+<form>
+  <div class="form-row">
+    <div class="col-auto">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <label for="thrustForm_blockSize" class="input-group-text bg-dark text-secondary">Grid:</label>
+        </div>
+        <select class="custom-select" id="thrustForm_blockSize" name="blockSize">
+          <option selected disabled>Size</option>
+          <option value="blockSmall">Small</option>
+          <option value="blockLarge">Large</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="col-auto">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <label for="thrustForm_weight" class="input-group-text bg-dark text-secondary">Weight:</label>
+        </div>
+        <input type="number" class="form-control" id="thrustForm_weight" placeholder="Unladen"></input>
+        <div class="input-group-append">
+          <label for="thrustForm_weight" class="input-group-text bg-dark text-secondary">kg</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-auto">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <label for="thrustForm_planet" class="input-group-text bg-dark text-secondary">Planet:</label>
+        </div>
+        <select class="custom-select" id="thrustForm_planet" name="blockSize">
+          <option value="planetEarth">Earth</option>
+          <option value="planetMoon">Moon</option>
+          <option value="planetMars">Mars</option>
+          <option value="planetMoon">Europa</option>
+          <option value="planetEarth">Alien</option>
+          <option value="planetMoon">Titan</option>
+          <option value="planetTriton" disabled>Triton (unavailable)</option>
+        </select>
+        <div class="input-group-append">
+          <button class="btn input-group-text bg-dark text-secondary" type="button">Advanced (unavailable)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="col-auto">
+    </div>
+  </div>
+</form>

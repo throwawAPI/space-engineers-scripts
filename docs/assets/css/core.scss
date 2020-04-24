@@ -1,0 +1,25 @@
+---
+---
+$font-family-base: 'Inconsolata', 'Lucida Console', Monaco, monospace;
+
+$theme-colors: (
+  "primary":   #c000c0,
+  "secondary": #c0c000,
+  "muted":     #008000,
+  "dark":      #181838
+);
+
+$body-bg:    #101030;
+$body-color: #00c000;
+
+@import "bootstrap/bootstrap";
+
+nav.navbar {
+  border-style: dashed none;
+  font-family: 'VT323', 'Lucida Console', Monaco, monospace;
+}
+
+main.container {
+  border-style: dashed none;
+  overflow-y: scroll;
+}
