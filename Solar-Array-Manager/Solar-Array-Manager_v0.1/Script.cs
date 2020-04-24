@@ -3,7 +3,7 @@
 //
 
 // EDIT THESE VARIABLES
-public const string VERSION = "Template v0.1",
+public const string VERSION = "Solar Array Manager v0.2",
   SOLAR_LCD_HEADER = "      SOLAR ARRAY MANAGER",
   SOLAR_MANAGED    = ".solar",
   SOLAR_MASTER     = ".master",
@@ -14,7 +14,10 @@ public const string VERSION = "Template v0.1",
   SOLAR_OFFSET_180 = ".angle180",
   SOLAR_OFFSET_270 = ".angle270";
 public const UpdateFrequency FREQ = UpdateFrequency.Update100;
-public const float SOLAR_TOLERANCE = (float)(Math.PI / 180) * 0.05f; // tenth of a degree
+public const float SOLAR_ANGLE_TOLERANCE = (float)(Math.PI / 180) * 0.1f, // 0.1º
+  SOLAR_SPEED_TARGET_RPM = 0.01f,
+  SOLAR_WATT_TOLERANCE  = 0.00001f, // 0.05kW
+  SOLAR_DAY_POWER = 0.001f; // 1kW
 
 //
 // XXX Solar-Array-Manager/Solar-Array-Manager_v0.1/_Main.cs XXX
@@ -22,22 +25,24 @@ public const float SOLAR_TOLERANCE = (float)(Math.PI / 180) * 0.05f; // tenth of
 
 //// GLOBAL VARIABLES
 // for transfering data between Runtime events
-enum SolarArrayManagerPhase {
-  ScanStart,
-  ScanTravelCW,
-  ScanTravelCCW,
-  ScanTravelMax,
-  DialStart,
-  DialTravel,
-  Night
-}
-SolarArrayManagerPhase currentPhase = SolarArrayManagerPhase.ScanStart;
-List<IMyTextPanel> panels;
+IEnumerator<SolarPhase> phase;
 List<IMyMotorStator> rotorsAzi, rotorsAlt; // azimuth and alititude
+List<IMyTextPanel> panels;
 IMyMotorStator masterAzi, masterAlt;
 IMySolarPanel masterSolar;
-float maxOutAngle, maxOutMW;
+float maxOverallAngle, maxOverallMW, maxPhaseMW;
 bool modeAzimuth = true;
+int speedMult = 0;
+
+public enum SolarPhase {
+  MasterStart,
+  MasterFirst,
+  MasterFirstTravel,
+  MasterSecond,
+  MasterSecondTravel,
+  SlaveStart,
+  SlaveTravel
+}
 
 //// Program()
 // for variable initialization, setup, etc.
@@ -49,12 +54,17 @@ public Program() {
 public void Initialize() {
   // run each Program__...() submethods here
   Program__Programmable_Block_Display();
+  Program__GetPhase();
   Program__GetSolarRotors();
   Program__GetMasterSolarRotors();
   Program__GetMasterSolarPanel();
   Program__GetLCDs();
   Program__SetupLCDs();
 } // Initialize()
+
+public void Program__GetPhase() {
+  phase = SolarPhases();
+} // Program__GetPhase()
 
 public void Program__GetSolarRotors() {
   rotorsAzi = GetBlocksOfTypeWithNames(rotorsAzi, SOLAR_MANAGED, SOLAR_ROTOR_AZI)
@@ -108,15 +118,16 @@ public void Main(string arg, UpdateType source) {
   // test each trigger individually, not with if() else if () blocks
 
   if((source & UpdateType.Update100) != 0) {
-    Main__RunCurrentPhase();
     Main__WriteLCDs();
+    Main__RunNextPhase();
   } // if(source & FREQ)
   Main__WriteDiagnostics();
 } // Main()
 
-public void Main__RunCurrentPhase() { // TODO document this better
+public void Main__RunNextPhase() { // TODO document this better
   IMyMotorStator master;
   List<IMyMotorStator> rotors;
+
   if(modeAzimuth) {
     master = masterAzi;
     rotors = rotorsAzi;
@@ -124,97 +135,143 @@ public void Main__RunCurrentPhase() { // TODO document this better
     master = masterAlt;
     rotors = rotorsAlt;
   }
+  // if we don't have a master, retry with the other mode
   if(master == null) {
     modeAzimuth = !modeAzimuth;
-    return; // cannot operate in this mode
+    return;
   }
-  if(masterSolar.CurrentOutput == 0.0f && masterSolar.IsWorking) {
-    currentPhase = SolarArrayManagerPhase.Night;
-    return; // it's nightime
-  }
-  switch(currentPhase) {
-    case SolarArrayManagerPhase.ScanStart:
-      maxOutAngle = master.Angle;
-      maxOutMW    = masterSolar.CurrentOutput;
-      master.TargetVelocityRPM = 0.01f;
-      master.RotorLock = false;
-      currentPhase = SolarArrayManagerPhase.ScanTravelCW;
-    break;
-    case SolarArrayManagerPhase.ScanTravelCW:
-      if(masterSolar.CurrentOutput < maxOutMW) {
-        master.TargetVelocityRPM = -0.01f;
-        currentPhase = SolarArrayManagerPhase.ScanTravelCCW;
-      }
-      maxOutMW    = masterSolar.CurrentOutput;
-      maxOutAngle = master.Angle;
-    break;
-    case SolarArrayManagerPhase.ScanTravelCCW:
-      if(masterSolar.CurrentOutput < maxOutMW) {
-        master.TargetVelocityRPM = 0.01f;
-        currentPhase = SolarArrayManagerPhase.ScanTravelMax;
-      } else {
-        maxOutMW    = masterSolar.CurrentOutput;
-        maxOutAngle = master.Angle;
-      }
-    break;
-    case SolarArrayManagerPhase.ScanTravelMax:
-      if(Math.Abs(master.Angle - maxOutAngle) < SOLAR_TOLERANCE) {
-        master.RotorLock = true;
-        currentPhase = SolarArrayManagerPhase.DialStart;
-      }
-    break;
-    case SolarArrayManagerPhase.DialStart: // TODO
-      currentPhase = SolarArrayManagerPhase.DialTravel;
-    break;
-    case SolarArrayManagerPhase.DialTravel: // TODO
-      modeAzimuth = !modeAzimuth; // alternate between modes
-      currentPhase = SolarArrayManagerPhase.ScanStart;
-    break;
-    case SolarArrayManagerPhase.Night:
-      masterAzi.RotorLock = true;
-      masterAlt.RotorLock = true;
-      if(masterSolar.CurrentOutput > 0.0f) {
-        currentPhase = SolarArrayManagerPhase.ScanStart;
-      }
-    break;
-    default:
-    // don't know what to do
-    break;
-  }
-} // Main__RunCurrentPhase()
 
-// TODO: make this function look nicer?
+  if(masterSolar.CurrentOutput > maxOverallMW) {
+    maxOverallAngle = master.Angle;
+    maxOverallMW    = masterSolar.CurrentOutput;
+  }
+
+  // return to base position
+  if(masterSolar.CurrentOutput < SOLAR_DAY_POWER && masterSolar.IsWorking) {
+    if(masterAzi != null) {
+      Main__RotorSetAngleOrLock(masterAzi, 0);
+    }
+    if(masterAlt != null) {
+      Main__RotorSetAngleOrLock(masterAzi, 0);
+    }
+    phase = SolarPhases();
+    return;
+  }
+
+  if(phase.Current == SolarPhase.MasterFirst) {
+    speedMult = 10;
+  } else if(phase.Current == SolarPhase.MasterSecond) {
+    speedMult = 1;
+  }
+
+  switch(phase.Current) {
+    case SolarPhase.MasterStart: // assume we're at the best angle
+      modeAzimuth = !modeAzimuth; // alternate between modes
+      maxOverallAngle = master.Angle;
+      maxOverallMW    = masterSolar.CurrentOutput;
+      master.TargetVelocityRPM = SOLAR_SPEED_TARGET_RPM;
+      phase.MoveNext();
+      break;
+    case SolarPhase.MasterFirst:
+    case SolarPhase.MasterSecond:
+      maxPhaseMW = masterSolar.CurrentOutput;
+      master.TargetVelocityRPM = -1 * Math.Sign(master.TargetVelocityRPM) * SOLAR_SPEED_TARGET_RPM * speedMult; // reverse
+      master.RotorLock = false;
+      phase.MoveNext();
+      break;
+    case SolarPhase.MasterFirstTravel:
+    case SolarPhase.MasterSecondTravel:
+      if(masterSolar.CurrentOutput < maxPhaseMW - (SOLAR_WATT_TOLERANCE * speedMult)) {
+        master.RotorLock = true;
+        phase.MoveNext();
+      } else if(masterSolar.CurrentOutput > maxPhaseMW) {
+        maxPhaseMW = masterSolar.CurrentOutput;
+      }
+      break;
+    case SolarPhase.SlaveStart: // TODO
+      foreach(IMyMotorStator rotor in rotors) {
+        Main__RotorSetAngleOrLock(rotor, maxOverallAngle);
+      }
+      phase.MoveNext();
+      break;
+    case SolarPhase.SlaveTravel: // TODO
+      bool stopped = true;
+      foreach (IMyMotorStator rotor in rotors) {
+        Main__RotorSetAngleOrLock(rotor, maxOverallAngle);
+        stopped = stopped && rotor.RotorLock;
+      }
+      if(stopped) {
+        phase.MoveNext();
+      }
+      break;
+    default: // don't know what to do
+      break;
+  }
+} // Main__RunNextPhase()
+
 public void Main__WriteLCDs() {
-  string panelBuffer = SOLAR_LCD_HEADER + HR + "Master Azimuth: ";
-  if(masterAzi != null) {
-    panelBuffer += StripClassesFromName(masterAzi) + "\n" +
-      " - Angle: " + RadiansToDegreesStr(masterAzi.Angle) + "\n";
-  } else {
-    panelBuffer += "NONE FOUND\n";
-  }
-  panelBuffer += rotorsAzi.Count + " Azimuth rotor(s) total" + HR +
-    "Master Altitude: ";
-  if(masterAlt != null) {
-    panelBuffer += StripClassesFromName(masterAlt) + "\n" +
-      " - Angle: " + RadiansToDegreesStr(masterAlt.Angle) + "\n";
-  } else {
-    panelBuffer += "NONE FOUND\n";
-  }
-  panelBuffer += rotorsAlt.Count + " Altitude rotor(s) total" + HR +
-    "Master Solar: ";
-  if(masterSolar != null) {
-    panelBuffer += StripClassesFromName(masterSolar) + "\n" +
-      " - Power: " + MWToKWStr(masterSolar.CurrentOutput) + " / " +
-      MWToKWStr(maxOutMW) + " kW\n" +
-      " - Angle: " + RadiansToDegreesStr(maxOutAngle);
-  } else {
-    panelBuffer += "NONE FOUND";
-  }
-  panelBuffer += HR + "Current Phase: " + currentPhase.ToString("G");
   foreach (IMyTextPanel panel in panels) {
-    panel.WriteText(panelBuffer, false);
+    panel.WriteText(SOLAR_LCD_HEADER, false);
+    WriteLCD__Rotor(panel, "Azimuth",  masterAzi, rotorsAzi);
+    WriteLCD__Rotor(panel, "Altitude", masterAlt, rotorsAlt);
+    WriteLCD__SolarPanel(panel, masterSolar);
+    panel.WriteText(HR + "Current Phase: " + phase.Current.ToString("G"), true);
   }
 } // Main__WriteLCDs()
+
+public void Main__RotorSetAngleOrLock(IMyMotorStator rotor, float targetAngle) {
+  if(Math.Abs(rotor.Angle - targetAngle) < SOLAR_ANGLE_TOLERANCE) {
+    rotor.RotorLock = true;
+  } else {
+    rotor.RotorLock = false;
+    rotor.TargetVelocityRPM = (float)(targetAngle - rotor.Angle); // TODO: this travel arc is suboptimal
+    if(Math.Abs(rotor.TargetVelocityRPM) < SOLAR_SPEED_TARGET_RPM) {
+      rotor.TargetVelocityRPM = Math.Sign(rotor.TargetVelocityRPM) * SOLAR_SPEED_TARGET_RPM;
+    }
+  }
+} // Main__RotorSetAngleOrLock()
+
+public void WriteLCD__Rotor(IMyTextPanel panel, string rotorName, IMyMotorStator rotor, List<IMyMotorStator> rotors) {
+  string buffer = HR + "Master " + rotorName + ": ";
+  if(rotor != null) {
+    buffer += StripClassesFromName(rotor) + "\n" +
+      " - Angle:  " + RadiansToDegreesStr(rotor.Angle) + "°\n" +
+      " - Speed:  " + rotor.TargetVelocityRPM + " RPM\n" +
+      " - Locked: " + rotor.RotorLock + "\n";
+  } else {
+    buffer += "NONE\n";
+  }
+  buffer += rotors.Count + " " + rotorName + " rotor(s):";
+  foreach (IMyMotorStator slaveRotor in rotors) {
+    buffer += "\n > " + StripClassesFromName(slaveRotor) + " @ " + RadiansToDegreesStr(slaveRotor.Angle) + "°";
+  }
+  panel.WriteText(buffer, true);
+} // WriteLCD__Rotor()
+
+public void WriteLCD__SolarPanel(IMyTextPanel panel, IMySolarPanel solar) {
+  string buffer = HR + "Master Solar: ";
+  if(solar != null) {
+    buffer += StripClassesFromName(solar) + "\n" +
+      " - Power: " + MWToKWStr(solar.CurrentOutput) + " kW\n" +
+      "          " + MWToKWStr(maxOverallMW) + " kW (Max)\n" +
+      " - Angle: " + RadiansToDegreesStr(maxOverallAngle) + "° (Max)";
+  } else {
+    buffer += "NONE";
+  }
+  panel.WriteText(buffer, true);
+} // WriteLCD__SolarPanel()
+
+public IEnumerator<SolarPhase> SolarPhases() {
+  while(true) {
+    yield return SolarPhase.MasterStart;
+    yield return SolarPhase.MasterFirst;
+    yield return SolarPhase.MasterFirstTravel;
+    yield return SolarPhase.MasterSecond;
+    yield return SolarPhase.MasterSecondTravel;
+    yield return SolarPhase.SlaveStart;
+    yield return SolarPhase.SlaveTravel;
+  }
+} // SolarPhases()
 
 public string RadiansToDegreesStr(double radians) {
   return ((radians * 180) / Math.PI).ToString("##0.0");
