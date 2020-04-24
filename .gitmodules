@@ -1,3 +1,3 @@
 [submodule "docs/_vendor/bootstrap"]
 	path = docs/_vendor/bootstrap
-	url = git@github.com:twbs/bootstrap.git
+	url = https://github.com/twbs/bootstrap.git
