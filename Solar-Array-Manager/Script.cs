@@ -1,5 +1,5 @@
 //
-// XXX Solar-Array-Manager/Solar-Array-Manager_v0.1/_Customize.cs XXX
+// XXX Solar-Array-Manager/_Customize.cs XXX
 //
 
 // EDIT THESE VARIABLES
@@ -20,7 +20,7 @@ public const float SOLAR_ANGLE_TOLERANCE = (float)(Math.PI / 180) * 0.1f, // 0.1
   SOLAR_DAY_POWER = 0.001f; // 1kW
 
 //
-// XXX Solar-Array-Manager/Solar-Array-Manager_v0.1/_Main.cs XXX
+// XXX Solar-Array-Manager/_Main.cs XXX
 //
 
 //// GLOBAL VARIABLES
@@ -282,7 +282,7 @@ public string MWToKWStr(float MW) {
 } // MWToKWStr()
 
 //
-// XXX Solar-Array-Manager/Solar-Array-Manager_v0.1/_Template_v0.1.cs XXX
+// XXX Solar-Array-Manager/_Template_v0.1.cs XXX
 //
 
 // XXX START (DO NOT EDIT) XXX
