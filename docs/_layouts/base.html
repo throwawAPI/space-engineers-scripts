@@ -3,6 +3,15 @@
     <title>{{ page.title }} | Space Engineers | throwawAPI.github.io</title>
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/core.css">
+    {% for stylesheet in page.remote_stylesheets %}
+    <link rel="stylesheet" href="{{ stylesheet }}">
+    {% endfor %}
+    {% for script in page.local_scripts %}
+    <script type="text/javascript" src="{{ site.baseurl }}{{ script }}"></script>
+    {% endfor %}
+    {% for script in page.remote_scripts %}
+    <script type="text/javascript" src="{{ script }}"></script>
+    {% endfor %}
     <script type="module" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule="" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.js"></script>
   </head>

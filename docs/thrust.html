@@ -1,6 +1,11 @@
 ---
 layout: default
 title: Thrust Calculator
+local_scripts:
+  - "/assets/js/thrust.js"
+  - "/assets/js/thrust.gui.js"
+remote_scripts:
+  - "https://canvasjs.com/assets/script/canvasjs.min.js"
 ---
 <p>This tool provides the calculations necessary to ensure your vessel is
   flightworthy. You can simulate the atmospheres and gravity wells of different
@@ -18,8 +23,8 @@ title: Thrust Calculator
         <span class="select is-fullwidth">
           <select class="has-text-primary is-dark" id="thrust_size" name="thrust_size">
             <option selected disabled>Grid Size</option>
-            <option value="sizeSmall">Small</option>
-            <option value="sizeLarge">Large</option>
+            <option value="gridSmall">Small</option>
+            <option value="gridLarge">Large</option>
           </select>
         </span>
         <span class="icon is-left">
@@ -43,7 +48,7 @@ title: Thrust Calculator
     <div class="column is-narrow field has-addons">
       <p class="control has-icons-left is-expanded">
         <span class="select is-fullwidth">
-          <select class="has-text-primary" name="thrust_planet">
+          <select class="has-text-primary" id="thrust_planet" name="thrust_planet">
             <option selected disabled>Select Planet</option>
             <option value="planetEarth">Earth</option>
             <option value="planetMoon">Moon</option>
@@ -79,13 +84,13 @@ title: Thrust Calculator
       <div class="field-body">
         <div class="field">
           <p class="control has-icons-left is-expanded">
-            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksSmall" name="thrust_thrustersAtmoSmall" placeholder="Small">
+            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksSmall" name="thrust_hydroTanksSmall" placeholder="Small">
             <span class="icon is-left">
               <ion-icon name="contract-outline"></ion-icon>
             </span>
           </p>
           <p class="control has-icons-left is-expanded">
-            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksLarge" name="thrust_thrustersAtmoLarge" placeholder="Large">
+            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksLarge" name="thrust_hydroTanksLarge" placeholder="Large">
             <span class="icon is-left">
               <ion-icon name="expand-outline"></ion-icon>
             </span>
@@ -168,7 +173,11 @@ title: Thrust Calculator
 
   <div class="field">
     <p class="control">
-      <button class="button" type="button" name="calculate">Calculate</button>
+      <button class="button" type="button" name="calculate" onclick="ThrustGUI.calculate()">
+        Calculate
+      </button>
     </p>
   </div>
+
+  <div id="thrust_chart"></div>
 </form>
