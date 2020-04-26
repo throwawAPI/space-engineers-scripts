@@ -2,55 +2,173 @@
 layout: default
 title: Thrust Calculator
 ---
+<p>This tool provides the calculations necessary to ensure your vessel is
+  flightworthy. You can simulate the atmospheres and gravity wells of different
+  planets while planning a drop ship; calculate the thrust needed for a ship
+  to overcome a planet's gravity; measure the amount of hydrogen needed for a
+  stable orbit; estimate the amount of cargo weight an existing ship can carry
+  for a given planet.
+</p>
+<hr>
+<h3 class="title is-3">Ship Information</h3>
 <form>
-  <div class="form-row">
-    <div class="col-auto">
-      <div class="input-group">
-        <div class="input-group-prepend">
-          <label for="thrustForm_blockSize" class="input-group-text bg-dark text-secondary">Grid:</label>
-        </div>
-        <select class="custom-select" id="thrustForm_blockSize" name="blockSize">
-          <option selected disabled>Size</option>
-          <option value="blockSmall">Small</option>
-          <option value="blockLarge">Large</option>
-        </select>
-      </div>
+  <div class="columns is-desktop is-multiline">
+    <div class="column is-narrow field">
+      <p class="control has-icons-left is-expanded">
+        <span class="select is-fullwidth">
+          <select class="has-text-primary is-dark" id="thrust_size" name="thrust_size">
+            <option selected disabled>Grid Size</option>
+            <option value="sizeSmall">Small</option>
+            <option value="sizeLarge">Large</option>
+          </select>
+        </span>
+        <span class="icon is-left">
+          <ion-icon name="resize-outline"></ion-icon>
+        </span>
+      </p>
     </div>
 
-    <div class="col-auto">
-      <div class="input-group">
-        <div class="input-group-prepend">
-          <label for="thrustForm_weight" class="input-group-text bg-dark text-secondary">Weight:</label>
-        </div>
-        <input type="number" class="form-control" id="thrustForm_weight" placeholder="Unladen"></input>
-        <div class="input-group-append">
-          <label for="thrustForm_weight" class="input-group-text bg-dark text-secondary">kg</label>
-        </div>
-      </div>
+    <div class="column is-narrow field has-addons">
+      <p class="control">
+        <label class="button" for="thrust_weight">Weight:</label>
+      </p>
+      <p class="control has-icons-left is-expanded">
+        <input class="input has-text-primary" type="number" id="thrust_weight" name="thrust_weight" placeholder="Unladen (kg)">
+        <span class="icon is-left">
+          <ion-icon name="barbell-outline"></ion-icon>
+        </span>
+      </p>
     </div>
 
-    <div class="col-auto">
-      <div class="input-group">
-        <div class="input-group-prepend">
-          <label for="thrustForm_planet" class="input-group-text bg-dark text-secondary">Planet:</label>
-        </div>
-        <select class="custom-select" id="thrustForm_planet" name="blockSize">
-          <option value="planetEarth">Earth</option>
-          <option value="planetMoon">Moon</option>
-          <option value="planetMars">Mars</option>
-          <option value="planetMoon">Europa</option>
-          <option value="planetEarth">Alien</option>
-          <option value="planetMoon">Titan</option>
-          <option value="planetTriton" disabled>Triton (unavailable)</option>
-        </select>
-        <div class="input-group-append">
-          <button class="btn input-group-text bg-dark text-secondary" type="button">Advanced (unavailable)</button>
+    <div class="column is-narrow field has-addons">
+      <p class="control has-icons-left is-expanded">
+        <span class="select is-fullwidth">
+          <select class="has-text-primary" name="thrust_planet">
+            <option selected disabled>Select Planet</option>
+            <option value="planetEarth">Earth</option>
+            <option value="planetMoon">Moon</option>
+            <option value="planetMars">Mars</option>
+            <option value="planetMoon">Europa</option>
+            <option value="planetEarth">Alien</option>
+            <option value="planetMoon">Titan</option>
+            <option value="planetTriton" disabled>Triton</option>
+          </select>
+        </span>
+        <span class="icon is-left">
+          <ion-icon name="planet-outline"></ion-icon>
+        </span>
+      </p>
+      <p class="control">
+        <button class="button has-text-primary" disabled>Advanced</a>
+      </p>
+    </div>
+
+    <div class="column is-narrow field">
+      <p class="control has-icons-left is-expanded">
+        <input class="input has-text-primary" type="number" id="thrust_o2h2Gens" name="thrust_o2h2Gens" placeholder="O2/H2 Generators">
+        <span class="icon is-left">
+          <ion-icon name="speedometer-outline"></ion-icon>
+        </span>
+      </p>
+    </div>
+
+    <div class="column is-narrow field is-horizontal has-addons">
+      <p class="control">
+        <label class="button is-large" for="thrust_hydroTanksSmall">Hydrogen Tanks:</label>
+      </p>
+      <div class="field-body">
+        <div class="field">
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksSmall" name="thrust_thrustersAtmoSmall" placeholder="Small">
+            <span class="icon is-left">
+              <ion-icon name="contract-outline"></ion-icon>
+            </span>
+          </p>
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_hydroTanksLarge" name="thrust_thrustersAtmoLarge" placeholder="Large">
+            <span class="icon is-left">
+              <ion-icon name="expand-outline"></ion-icon>
+            </span>
+          </p>
         </div>
       </div>
     </div>
   </div>
-  <div class="form-row">
-    <div class="col-auto">
+
+
+  <h3 class="title is-3">Thrusters</h3>
+  <div class="columns is-desktop">
+    <div class="column field is-horizontal has-addons">
+      <p class="control">
+        <label class="button is-large" for="thrust_thrustersAtmoSmall">Atmospheric:</label>
+      </p>
+      <div class="field-body">
+        <div class="field">
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersAtmoSmall" name="thrust_thrustersAtmoSmall" placeholder="Small">
+            <span class="icon is-left">
+              <ion-icon name="contract-outline"></ion-icon>
+            </span>
+          </p>
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersAtmoLarge" name="thrust_thrustersAtmoLarge" placeholder="Large">
+            <span class="icon is-left">
+              <ion-icon name="expand-outline"></ion-icon>
+            </span>
+          </p>
+        </div>
+      </div>
     </div>
+
+    <div class="column field is-horizontal has-addons">
+      <p class="control">
+        <label class="button is-large" for="thrust_thrustersHydroSmall">Hydrogen:</label>
+      </p>
+      <div class="field-body">
+        <div class="field">
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersHydroSmall" name="thrust_thrusterHydroSmall" placeholder="Small">
+            <span class="icon is-left">
+              <ion-icon name="contract-outline"></ion-icon>
+            </span>
+          </p>
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersHydroLarge" name="thrust_thrusterHydroLarge" placeholder="Large">
+            <span class="icon is-left">
+              <ion-icon name="expand-outline"></ion-icon>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="column field is-horizontal has-addons">
+      <p class="control">
+        <label class="button is-large" for="thrust_thrustersIonSmall">Ion:</label>
+      </p>
+      <div class="field-body">
+        <div class="field">
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersIonSmall" name="thrust_thrusterIonSmall" placeholder="Small">
+            <span class="icon is-left">
+              <ion-icon name="contract-outline"></ion-icon>
+            </span>
+          </p>
+          <p class="control has-icons-left is-expanded">
+            <input class="input is-small has-text-primary" type="number" id="thrust_thrustersIonLarge" name="thrust_thrusterIonLarge" placeholder="Large">
+            <span class="icon is-left">
+              <ion-icon name="expand-outline"></ion-icon>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="field">
+    <p class="control">
+      <button class="button" type="button" name="calculate">Calculate</button>
+    </p>
   </div>
 </form>

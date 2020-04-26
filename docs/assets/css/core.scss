@@ -1,25 +1,81 @@
 ---
 ---
-$font-family-base: 'Inconsolata', 'Lucida Console', Monaco, monospace;
+$family-secondary: 'VT323', 'Lucida Console', Monaco, monospace;
+$family-monospace: 'Inconsolata', 'Lucida Console', Monaco, monospace;
+$family-primary: $family-monospace;
 
-$theme-colors: (
-  "primary":   #c000c0,
-  "secondary": #c0c000,
-  "muted":     #008000,
-  "dark":      #181838
-);
+$black:     hsl(  0,   0%,  4%);
+$black-bis: hsl(  0,   0%,  7%);
+$white-bis: hsl(  0,   0%, 98%);
+$yellow:    hsl( 60, 100%, 38%);
+$green:     hsl(120, 100%, 25%);
+$turquoise: hsl(120, 100%, 38%);
+$purple:    hsl(300, 100%, 38%);
 
-$body-bg:    #101030;
-$body-color: #00c000;
+$scheme-main: $black;
+$dark:        $black-bis;
+$text:        $turquoise;
+$text-strong: $turquoise;
+$title-color: $yellow;
+$body-color:  $turquoise;
+$link:        $purple;
+$link-hover:  $white-bis;
 
-@import "bootstrap/bootstrap";
+$border:       $green;
+//$border-hover: $turquoise;
+
+$navbar-background-color: $dark;
+$navbar-item-color: $purple;
+$navbar-item-hover-color: $white-bis;
+$navbar-item-hover-background-color: $purple;
+
+$input-placeholder-color: $turquoise;
+
+@import "bulma/bulma.sass";
+
+.border-dashed {
+  border-color: $green;
+  border-style: dashed none;
+}
+
+hr {
+  border-color: $green;
+  border-style: dashed none none;
+  background-color: transparent;
+}
+
+a:not([data-no-brackets]) {
+  &::before {
+  content: "[";
+  padding-right: 0.5rem;
+  }
+
+  &::after {
+  content: "]";
+  padding-left: 0.5rem;
+  }
+}
 
 nav.navbar {
-  border-style: dashed none;
-  font-family: 'VT323', 'Lucida Console', Monaco, monospace;
+  .navbar-brand a:hover, .navbar-burger:hover {
+    background-color: $purple;
+  }
 }
 
 main.container {
-  border-style: dashed none;
+  padding: 1rem;
   overflow-y: scroll;
+}
+
+// Remove the arrows from input fields with numbers
+// Chrome, Safari, Edge, Opera
+form .field input::-webkit-outer-spin-button,
+form .field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+// Firefox
+form .field input[type=number] {
+  -moz-appearance: textfield;
 }
